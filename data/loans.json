@@ -1,0 +1,26 @@
+{
+  "1c046f09-e409-43ec-b47f-bdc72965cf95": {
+    "id": "1c046f09-e409-43ec-b47f-bdc72965cf95",
+    "userId": "b2ba6932-3025-4dce-aa5c-990827deee40",
+    "bookId": "13e53fdc-8731-40a4-b99d-b5b93da31d58",
+    "loanDate": "2026-02-20T15:26:49.873Z",
+    "returnDate": "2026-02-20T15:29:32.742Z",
+    "status": "RETURNED"
+  },
+  "c8925204-424f-46b6-9e2b-2f91684af4fc": {
+    "id": "c8925204-424f-46b6-9e2b-2f91684af4fc",
+    "userId": "b2ba6932-3025-4dce-aa5c-990827deee40",
+    "bookId": "13e53fdc-8731-40a4-b99d-b5b93da31d58",
+    "loanDate": "2026-02-20T15:37:05.949Z",
+    "returnDate": null,
+    "status": "ACTIVE"
+  },
+  "d7ea3091-bf48-4c7c-9957-217dad1f1b2a": {
+    "id": "d7ea3091-bf48-4c7c-9957-217dad1f1b2a",
+    "userId": "56efd096-bba7-4b5c-95bf-959dbeb94033",
+    "bookId": "e2c0e118-b5c7-46cd-85fc-3212c7c1a5d0",
+    "loanDate": "2026-02-20T16:24:30.744Z",
+    "returnDate": "2026-02-20T16:25:26.296Z",
+    "status": "RETURNED"
+  }
+}

@@ -18,3 +18,18 @@ export const createLoanSchema = z.object({
   userId: z.string().uuid(),
   bookId: z.string().uuid(),
 });
+
+export const registerSchema = z.object({
+  name: z.string().min(2, "# Ім'я має містити мінімум 2 символи"),
+  email: z.string().email("# Невірний формат email"),
+  password: z.string().min(8, "# Пароль має містити мінімум 8 символів")
+});
+
+export const loginSchema = z.object({
+  email: z.string().email("# Невірний формат email"),
+  password: z.string().min(1, "# Пароль є обов'язковим")
+});
+
+export const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(1, "# Введіть рефреш токен")
+});

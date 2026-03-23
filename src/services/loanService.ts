@@ -1,64 +1,62 @@
-import { db } from '../storage/memoryStorage';
-import { Loan } from '../models/types';
-import { v4 as uuidv4 } from 'uuid';
-import { ErrorMessages } from '../schemas/errors';
+import { prisma } from '../db/prisma';
 
 export class LoanService {
-  getAllLoans(userId?: string): Loan[] {
-    const loans = Array.from(db.loans.values());
-    if (userId) {
-      return loans.filter(l => l.userId === userId);
+
+  async getLoans(user: { userId: string; role: string }) {
+    if (user.role === 'ADMIN') {
+      return await prisma.loan.findMany({
+        include: { book: true } 
+      });
+    } else {
+      return await prisma.loan.findMany({
+        where: { userId: user.userId },
+        include: { book: true }
+      });
     }
-    return loans;
   }
 
-  async createLoan(userId: string, bookId: string): Promise<Loan> {
-    const user = db.users.get(userId);
-    const book = db.books.get(bookId);
-    
-    if (!user) throw new Error(ErrorMessages.USER_NOT_FOUND);
-    if (!book) throw new Error(ErrorMessages.BOOK_NOT_FOUND);
-    if (!book.available) throw new Error(ErrorMessages.BOOK_NOT_AVAILABLE);
+  async createLoan(userId: string, bookId: string) {
+    const book = await prisma.book.findUnique({ where: { id: bookId } });
+    if (!book) throw new Error('# Книга незнайдена');
+    if (!book.available) throw new Error('# Книга недоступна');
 
-    const newLoan: Loan = {
-      id: uuidv4(),
-      userId,
-      bookId,
-      loanDate: new Date(),
-      returnDate: null,
-      status: 'ACTIVE'
-    };
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error('# Користувач незнайдений');
 
-    book.available = false;
-    
-    db.books.set(bookId, book);
-    db.loans.set(newLoan.id, newLoan);
+    const loan = await prisma.loan.create({
+      data: {
+        userId,
+        bookId,
+        status: 'ACTIVE' 
+      }
+    });
 
-    await db.save(); 
-
-    return newLoan;
-  }
-
-  async returnBook(loanId: string): Promise<Loan> {
-    const loan = db.loans.get(loanId);
-    
-    if (!loan) throw new Error(ErrorMessages.LOAN_NOT_FOUND);
-    if (loan.status === 'RETURNED') {
-        throw new Error(ErrorMessages.LOAN_ALREADY_RETURNED);
-    }
-
-    loan.status = 'RETURNED';
-    loan.returnDate = new Date();
-    db.loans.set(loanId, loan);
-
-    const book = db.books.get(loan.bookId);
-    if (book) {
-      book.available = true;
-      db.books.set(book.id, book);
-    }
-
-    await db.save();
+    await prisma.book.update({
+      where: { id: bookId },
+      data: { available: false }
+    });
 
     return loan;
+  }
+
+  async returnBook(loanId: string) {
+    const loan = await prisma.loan.findUnique({ where: { id: loanId } });
+    if (!loan) throw new Error('# Позика незнайдена');
+    if (loan.status === 'RETURNED') throw new Error('# Позика вже повернута');
+
+    const updatedLoan = await prisma.loan.update({
+      where: { id: loanId },
+      data: {
+        status: 'RETURNED',
+        returnDate: new Date() 
+      }
+    });
+
+    await prisma.book.update({
+      where: { id: loan.bookId },
+      data: { available: true }
+    });
+
+    return updatedLoan;
   }
 }

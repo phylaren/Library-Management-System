@@ -1,47 +1,37 @@
-import { db } from '../storage/memoryStorage';
-import { Book } from '../models/types';
-import { v4 as uuidv4 } from 'uuid';
+import { prisma } from '../db/prisma';
 
 export class BookService {
-  getAll(): Book[] {
-    return Array.from(db.books.values());
+  async getAllBooks() {
+    return await prisma.book.findMany();
   }
 
-  getById(id: string): Book | undefined {
-    return db.books.get(id);
+  async getBookById(id: string) {
+    const book = await prisma.book.findUnique({ where: { id } });
+    if (!book) throw new Error('# Книга незнайдена');
+    return book;
   }
 
-  
-  async create(data: Omit<Book, 'id' | 'available'>): Promise<Book> {
-    const newBook: Book = {
-      id: uuidv4(),
-      ...data,
-      available: true 
-    };
-    db.books.set(newBook.id, newBook);
-    
-    await db.save(); 
-    return newBook;
+  async createBook(data: any) {
+    return await prisma.book.create({ data });
   }
 
-  async update(id: string, data: Partial<Book>): Promise<Book | null> {
-    const book = db.books.get(id);
-    if (!book) return null; 
-    
-    const updatedBook = { ...book, ...data };
-    db.books.set(id, updatedBook);
-    
-    await db.save(); 
-    return updatedBook;
-  }
-
-  async delete(id: string): Promise<boolean> {
-    const isDeleted = db.books.delete(id);
-    
-    if (isDeleted) {
-      await db.save(); 
+  async updateBook(id: string, data: any) {
+    try {
+      return await prisma.book.update({
+        where: { id },
+        data
+      });
+    } catch (error) {
+      throw new Error('# Книга незнайдена'); 
     }
-    
-    return isDeleted;
+  }
+
+  async deleteBook(id: string) {
+    try {
+      await prisma.book.delete({ where: { id } });
+      return { message: '# Книга видалена успішно' };
+    } catch (error) {
+      throw new Error('# Книга незнайдена');
+    }
   }
 }

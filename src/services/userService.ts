@@ -1,45 +1,60 @@
-import { db } from '../storage/memoryStorage';
-import { User } from '../models/types';
-import { v4 as uuidv4 } from 'uuid';
+import { prisma } from '../db/prisma';
 
 export class UserService {
-  getAll(): User[] {
-    return Array.from(db.users.values());
+  
+  async getAll() {
+    return await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      }
+    });
   }
 
-  getById(id: string): User | undefined {
-    return db.users.get(id);
-  }
-
-  async create(data: Omit<User, 'id'>): Promise<User> {
-    const newUser: User = {
-      id: uuidv4(),
-      ...data,
-    };
-    db.users.set(newUser.id, newUser);
+  async getById(id: string) {
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      }
+    });
     
-    await db.save();
-    return newUser;
-  }
-
-  async update(id: string, data: Partial<User>): Promise<User | null> {
-    const user = db.users.get(id);
     if (!user) return null;
-    
-    const updatedUser = { ...user, ...data };
-    db.users.set(id, updatedUser);
-    
-    await db.save(); 
-    return updatedUser;
+    return user;
   }
 
-  async delete(id: string): Promise<boolean> {
-    const isDeleted = db.users.delete(id);
-    
-    if (isDeleted) {
-      await db.save(); 
+  async create(data: any) {
+    return await prisma.user.create({
+      data,
+      select: { id: true, name: true, email: true, role: true }
+    });
+  }
+
+  async update(id: string, data: any) {
+    try {
+      return await prisma.user.update({
+        where: { id },
+        data,
+        select: { id: true, name: true, email: true, role: true }
+      });
+    } catch (error) {
+      return null; 
     }
-    
-    return isDeleted;
+  }
+
+  async delete(id: string) {
+    try {
+      await prisma.user.delete({
+        where: { id }
+      });
+      return true;
+    } catch (error) {
+      return false; 
+    }
   }
 }

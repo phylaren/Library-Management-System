@@ -5,15 +5,15 @@ import { ErrorMessages } from '../schemas/errors';
 
 const userService = new UserService();
 
-export const getUsers = (req: Request, res: Response) => {
-    const users = userService.getAll();
+export const getUsers = async (req: Request, res: Response) => {
+    const users = await userService.getAll(); 
     res.json(users); 
 };
 
-export const getUserByID = (req: Request, res: Response) => {
+export const getUserByID = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const user = userService.getById(id as string);
+        const user = await userService.getById(id as string);
         
         if (!user) {
             return res.status(404).json({ error: ErrorMessages.USER_NOT_FOUND });

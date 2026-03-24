@@ -22,19 +22,20 @@ export class LoanService {
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error('# Користувач незнайдений');
-
-    const loan = await prisma.loan.create({
-      data: {
-        userId,
-        bookId,
-        status: 'ACTIVE' 
-      }
-    });
-
-    await prisma.book.update({
-      where: { id: bookId },
-      data: { available: false }
-    });
+    
+    const [loan] = await prisma.$transaction([
+      prisma.loan.create({
+        data: {
+          userId,
+          bookId,
+          status: 'ACTIVE' 
+        }
+      }),
+      prisma.book.update({
+        where: { id: bookId },
+        data: { available: false }
+      })
+    ]);
 
     return loan;
   }
@@ -42,20 +43,22 @@ export class LoanService {
   async returnBook(loanId: string) {
     const loan = await prisma.loan.findUnique({ where: { id: loanId } });
     if (!loan) throw new Error('# Позика незнайдена');
-    if (loan.status === 'RETURNED') throw new Error('# Позика вже повернута');
+    
+    if (loan.status === 'RETURNED') throw new Error('# Позика вже повернута'); 
 
-    const updatedLoan = await prisma.loan.update({
-      where: { id: loanId },
-      data: {
-        status: 'RETURNED',
-        returnDate: new Date() 
-      }
-    });
-
-    await prisma.book.update({
-      where: { id: loan.bookId },
-      data: { available: true }
-    });
+    const [updatedLoan] = await prisma.$transaction([
+      prisma.loan.update({
+        where: { id: loanId },
+        data: {
+          status: 'RETURNED',
+          returnDate: new Date() 
+        }
+      }),
+      prisma.book.update({
+        where: { id: loan.bookId },
+        data: { available: true }
+      })
+    ]);
 
     return updatedLoan;
   }

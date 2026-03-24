@@ -15,7 +15,7 @@ export const createUserSchema = z.object({
 });
 
 export const createLoanSchema = z.object({
-  userId: z.string().uuid(),
+  userId: z.string().uuid().optional(),
   bookId: z.string().uuid(),
 });
 

@@ -15,7 +15,7 @@ export const getBookById = async (req: Request<{ id: string }>, res: Response) =
         const book = await bookService.getBookById(req.params.id); 
         res.json(book);
     } catch (error: any) {
-        res.status(404).json({ error: error.message });
+        res.status(404).json({ error: error.issues });
     }
 };
 
@@ -27,7 +27,7 @@ export const createBook = async (req: Request, res: Response) => {
         res.status(201).json(book);
     } catch (error: any) {
         if (error.name === 'ZodError') {
-            return res.status(400).json({ error: error.errors });
+            return res.status(400).json({ error: error.issues });
         }
         res.status(500).json({ error: error.message });
     }
@@ -43,7 +43,7 @@ export const updateBook = async (req: Request<{ id: string }>, res: Response) =>
         res.json(updatedBook);
     } catch (error: any) {
         if (error.name === 'ZodError') {
-            return res.status(400).json({ error: error.errors });
+            return res.status(400).json({ error: error.issues });
         }
         if (error.message === '# Книга незнайдена') {
             return res.status(404).json({ error: ErrorMessages.BOOK_NOT_FOUND });
@@ -55,13 +55,14 @@ export const updateBook = async (req: Request<{ id: string }>, res: Response) =>
 export const deleteBook = async (req: Request<{ id: string }>, res: Response) => {
     try {
         const { id } = req.params; 
-        await bookService.deleteBook(id);
+        const result = await bookService.deleteBook(id);
 
-        res.status(200).json({ message: '# Книга успішно видалена' });
+        res.status(200).json(result); 
     } catch (error: any) {
         if (error.message === '# Книга незнайдена') {
-            return res.status(404).json({ error: ErrorMessages.BOOK_NOT_FOUND });
+            return res.status(404).json({ error: '# Книга незнайдена' });
         }
+        
         res.status(500).json({ error: error.message });
     }
 };

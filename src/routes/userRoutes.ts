@@ -1,10 +1,13 @@
 import { Router } from 'express';
 import * as UserController from '../controllers/userController';
+import { authenticate } from '../middleware/authMiddleware';
+import { authorizeRole } from '../middleware/roleMiddleware';
 
 const router = Router();
 
-router.get('/', UserController.getUsers);
-router.post('/', UserController.createUser);
-router.get('/:id', UserController.getUserByID);
+router.get('/me', authenticate, UserController.getCurrentUser); 
+
+router.get('/', authenticate, authorizeRole('ADMIN'), UserController.getUsers);
+router.get('/:id', authenticate, authorizeRole('ADMIN'), UserController.getUserByID);
 
 export default router;

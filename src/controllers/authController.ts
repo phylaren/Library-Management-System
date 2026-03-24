@@ -13,7 +13,7 @@ export const register = async (req: Request, res: Response) => {
     res.status(201).json(user);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      return res.status(400).json({ error: error.errors });
+      return res.status(400).json({ error: error.issues });
     }
     res.status(400).json({ error: error.message });
   }
@@ -27,7 +27,7 @@ export const login = async (req: Request, res: Response) => {
     res.json(result);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      return res.status(400).json({ error: error.errors });
+      return res.status(400).json({ error: error.issues });
     }
     res.status(401).json({ error: error.message }); 
   }
@@ -42,7 +42,7 @@ export const refresh = async (req: Request, res: Response) => {
     res.json(result);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      return res.status(400).json({ error: error.errors });
+      return res.status(400).json({ error: error.issues });
     }
     
     res.status(401).json({ error: error.message });

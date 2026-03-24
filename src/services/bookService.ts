@@ -28,10 +28,23 @@ export class BookService {
 
   async deleteBook(id: string) {
     try {
-      await prisma.book.delete({ where: { id } });
+      const book = await prisma.book.findUnique({ where: { id } });
+      if (!book) throw new Error('# Книга незнайдена');
+
+      await prisma.$transaction([
+        prisma.loan.deleteMany({ where: { bookId: id } }),
+        prisma.book.delete({ where: { id } })
+      ]);
+
       return { message: '# Книга видалена успішно' };
-    } catch (error) {
-      throw new Error('# Книга незнайдена');
+    } catch (error: any) {
+      if (error.message === '# Книга незнайдена') throw error;
+      
+      if (error.code === 'P2025') {
+          throw new Error('# Книга незнайдена');
+      }
+      
+      throw new Error('# Не вдалося видалити книгу через технічну помилку');
     }
   }
 }

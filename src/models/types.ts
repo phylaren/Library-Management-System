@@ -11,6 +11,8 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  role: string;
+  avatarUrl: string | null;
 }
 
 export type LoanStatus = 'ACTIVE' | 'RETURNED';

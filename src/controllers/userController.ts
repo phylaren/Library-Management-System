@@ -5,6 +5,9 @@ import { ErrorMessages } from '../schemas/errors';
 import { AuthRequest } from '../middleware/authMiddleware';
 import { prisma } from '../db/prisma'; 
 
+import fs from 'fs';
+import path from 'path';
+
 export const getCurrentUser = async (req: AuthRequest, res: Response) => {
     try {
         if (!req.user) {
@@ -65,5 +68,58 @@ export const createUser = async (req: Request, res: Response) => {
         }
         
         res.status(500).json({ error: error.message });
+    }
+};
+
+export const uploadAvatar = async (req: AuthRequest, res: Response) => {
+    try {
+        if (!req.user) return res.status(401).json({ error: '# Не авторизовано' });
+        
+        if (!req.file) return res.status(400).json({ error: '# Файл не завантажено' });
+
+        const userId = req.user.userId;
+        const newAvatarUrl = `/uploads/avatars/${req.file.filename}`;
+
+        const user = await userService.getById(userId);
+        
+        if (user && user.avatarUrl) {
+            const oldFilePath = path.join(process.cwd(), 'uploads', 'avatars', path.basename(user.avatarUrl));
+            if (fs.existsSync(oldFilePath)) {
+                fs.unlinkSync(oldFilePath);
+            }
+        }
+
+        await userService.update(userId, { avatarUrl: newAvatarUrl });
+
+        res.json({ 
+            message: "Аватарку успішно оновлено.",
+            avatarUrl: newAvatarUrl
+        });
+    } catch (error: any) {
+        res.status(500).json({ error: `# Внутрішня помилка сервера: ${error.message}` });
+    }
+};
+
+export const deleteAvatar = async (req: AuthRequest, res: Response) => {
+    try {
+        if (!req.user) return res.status(401).json({ error: '# Не авторизовано' });
+        
+        const userId = req.user.userId;
+        const user = await userService.getById(userId);
+
+        if (!user || !user.avatarUrl) {
+            return res.status(404).json({ error: '# Аватарку не знайдено' });
+        }
+
+        const filePath = path.join(process.cwd(), 'uploads', 'avatars', path.basename(user.avatarUrl));
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+
+        await userService.update(userId, { avatarUrl: null });
+
+        res.json({ message: "Аватарку видалено." });
+    } catch (error: any) {
+        res.status(500).json({ error: `# Внутрішня помилка сервера: ${error.message}` });
     }
 };

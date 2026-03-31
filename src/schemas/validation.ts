@@ -33,3 +33,12 @@ export const loginSchema = z.object({
 export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1, "# Введіть рефреш токен")
 });
+
+export const requestResetSchema = z.object({
+  email: z.string().email("# Неправильний формат email")
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "# Токен обов'язковий"),
+  password: z.string().min(8, "# Пароль має містити мінімум 8 символів")
+});

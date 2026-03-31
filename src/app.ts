@@ -13,5 +13,6 @@ app.use('/books', bookRoutes);
 app.use('/users', userRoutes);
 app.use('/loans', loanRoutes);
 app.use('/auth', authRoutes);
+app.use('/uploads', express.static('uploads'));
 
 export default app;

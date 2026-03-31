@@ -9,6 +9,7 @@ export class UserService {
         name: true,
         email: true,
         role: true,
+        avatarUrl: true,
       }
     });
   }
@@ -21,6 +22,7 @@ export class UserService {
         name: true,
         email: true,
         role: true,
+        avatarUrl: true,
       }
     });
     
@@ -31,7 +33,7 @@ export class UserService {
   async create(data: any) {
     return await prisma.user.create({
       data,
-      select: { id: true, name: true, email: true, role: true }
+      select: { id: true, name: true, email: true, role: true, avatarUrl: true, }
     });
   }
 
@@ -40,7 +42,7 @@ export class UserService {
       return await prisma.user.update({
         where: { id },
         data,
-        select: { id: true, name: true, email: true, role: true }
+        select: { id: true, name: true, email: true, role: true, avatarUrl: true, }
       });
     } catch (error) {
       return null; 

@@ -4,9 +4,10 @@ import { createUserSchema } from "../schemas/validation";
 import { ErrorMessages } from '../schemas/errors'; 
 import { AuthRequest } from '../middleware/authMiddleware';
 import { prisma } from '../db/prisma'; 
-
 import fs from 'fs';
 import path from 'path';
+import sharp from 'sharp';
+import { v4 as uuidv4 } from 'uuid';
 
 export const getCurrentUser = async (req: AuthRequest, res: Response) => {
     try {
@@ -74,16 +75,25 @@ export const createUser = async (req: Request, res: Response) => {
 export const uploadAvatar = async (req: AuthRequest, res: Response) => {
     try {
         if (!req.user) return res.status(401).json({ error: '# Не авторизовано' });
-        
-        if (!req.file) return res.status(400).json({ error: '# Файл не завантажено' });
+        if (!req.file) return res.status(400).json({ error: '# Файл не надано' });
 
         const userId = req.user.userId;
-        const newAvatarUrl = `/uploads/avatars/${req.file.filename}`;
+        
+        const filename = `${uuidv4()}.webp`;
+        const outputPath = path.join(process.cwd(), 'uploads', 'avatars', filename);
+
+        await sharp(req.file.buffer)
+            .resize(250, 250, { fit: 'cover', position: 'center' })
+            .webp({ quality: 80 })
+            .toFile(outputPath);
+
+        const newAvatarUrl = `/uploads/avatars/${filename}`;
 
         const user = await userService.getById(userId);
         
         if (user && user.avatarUrl) {
-            const oldFilePath = path.join(process.cwd(), 'uploads', 'avatars', path.basename(user.avatarUrl));
+            const oldFileName = path.basename(user.avatarUrl);
+            const oldFilePath = path.join(process.cwd(), 'uploads', 'avatars', oldFileName);
             if (fs.existsSync(oldFilePath)) {
                 fs.unlinkSync(oldFilePath);
             }
@@ -92,11 +102,11 @@ export const uploadAvatar = async (req: AuthRequest, res: Response) => {
         await userService.update(userId, { avatarUrl: newAvatarUrl });
 
         res.json({ 
-            message: "Аватарку успішно оновлено.",
+            message: "Аватарку успішно оптимізовано та оновлено.",
             avatarUrl: newAvatarUrl
         });
     } catch (error: any) {
-        res.status(500).json({ error: `# Внутрішня помилка сервера: ${error.message}` });
+        res.status(500).json({ error: `# Помилка завантаження: ${error.message}` });
     }
 };
 

@@ -102,7 +102,7 @@ export const uploadAvatar = async (req: AuthRequest, res: Response) => {
         await userService.update(userId, { avatarUrl: newAvatarUrl });
 
         res.json({ 
-            message: "Аватарку успішно оптимізовано та оновлено.",
+            message: "Аватарку успішно оптимізовано та оновлено",
             avatarUrl: newAvatarUrl
         });
     } catch (error: any) {
@@ -128,7 +128,7 @@ export const deleteAvatar = async (req: AuthRequest, res: Response) => {
 
         await userService.update(userId, { avatarUrl: null });
 
-        res.json({ message: "Аватарку видалено." });
+        res.json({ message: "Аватарку видалено" });
     } catch (error: any) {
         res.status(500).json({ error: `# Внутрішня помилка сервера: ${error.message}` });
     }
